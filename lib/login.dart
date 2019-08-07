@@ -6,10 +6,7 @@ class LoginPage extends StatefulWidget {
   State createState() => new LoginPageState();
 }
 
-enum FormType{
-  login,
-  register
-}
+enum FormType { login, register }
 
 class LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
@@ -20,6 +17,10 @@ class LoginPageState extends State<LoginPage>
   String _password; // Password
   FormType _formType = FormType.login;
 
+  // Password Eye Button
+  Color _eyeButtonColor = Colors.grey;
+  bool _isObscured = true;
+
 // Validation Entered Credentials.
   bool validateAndSave() {
     final form = formKey.currentState;
@@ -28,7 +29,7 @@ class LoginPageState extends State<LoginPage>
       return true;
     }
     return false;
-    }
+  }
 
   void validateAndSubmit() async {
     if (validateAndSave()) {
@@ -37,16 +38,21 @@ class LoginPageState extends State<LoginPage>
             .signInWithEmailAndPassword(email: _username, password: _password);
         FirebaseUser user = result.user;
         print('Signed in: ${user.uid}');
-      }
-      catch (e) {
+      } catch (e) {
         print('Error: $e');
       }
     }
   }
 
-  void moveToRegister(){
+  void moveToRegister() {
     setState(() {
       _formType = FormType.register;
+    });
+  }
+
+  void moveToLogin(){
+    setState((){
+      _formType = FormType.login;
     });
   }
 
@@ -74,12 +80,7 @@ class LoginPageState extends State<LoginPage>
       body: new Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          new Image(
-            image: new AssetImage("assets/background.jpg"),
-            fit: BoxFit.cover,
-            color: Colors.black54,
-            colorBlendMode: BlendMode.darken,
-          ),
+          buildBackgroundImage(),
           new Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -94,11 +95,11 @@ class LoginPageState extends State<LoginPage>
                       primarySwatch: Colors.teal,
                       inputDecorationTheme: new InputDecorationTheme(
                           labelStyle: new TextStyle(
-                              color: Colors.teal, fontSize: 20.0))),
+                              color: Colors.white, fontSize: 20.0))),
                   child: Container(
                     padding: const EdgeInsets.all(50.0),
                     child: new Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: buildInputs() + buildSubmitButton(),
                     ),
                   ),
@@ -111,58 +112,151 @@ class LoginPageState extends State<LoginPage>
     );
   }
 
-  List<Widget> buildInputs(){
-    return[
+  Image buildBackgroundImage() {
+    return new Image(
+      image: new AssetImage("assets/background.jpg"),
+      fit: BoxFit.cover,
+      color: Colors.black87,
+      colorBlendMode: BlendMode.darken,
+    );
+  }
+
+  List<Widget> buildInputs() {
+    return [
       new TextFormField(
-        validator: (value) => value.isEmpty ? 'Student ID cannot be empty.' : null,
+        validator: (value) =>
+            value.isEmpty ? 'Email ID cannot be empty.' : null,
         onSaved: (value) => _username = value,
-        decoration:
-        new InputDecoration(labelText: 'Enter Student ID', icon: new Icon(Icons.mail,)),
+        decoration: new InputDecoration(
+            labelText: 'Enter Email Address',
+            suffixIcon: IconButton(
+              onPressed: null,
+              icon: Icon(Icons.mail),
+            )),
         keyboardType: TextInputType.text,
       ),
-
       new TextFormField(
         onSaved: (value) => _password = value,
-        validator: (value) => value.isEmpty ? 'Password cannot be left blank.' : null,
-        decoration: new InputDecoration(labelText: 'Enter Password', icon: new Icon(Icons.lock,)),
+        validator: (value) =>
+            value.isEmpty ? 'Password cannot be left blank.' : null,
+        decoration: new InputDecoration(
+            labelText: 'Enter Password',
+            suffixIcon: IconButton(
+              onPressed: () {
+                if (_isObscured) {
+                  setState(() {
+                    _isObscured = false;
+                    _eyeButtonColor = Theme.of(context).primaryColor;
+                  });
+                } else {
+                  setState(() {
+                    _isObscured = true;
+                    _eyeButtonColor = Colors.grey;
+                  });
+                }
+              },
+              icon: Icon(Icons.remove_red_eye),
+            )),
         keyboardType: TextInputType.text,
-        obscureText: true,
+        obscureText: _isObscured,
       ),
     ];
   }
 
-  List<Widget> buildSubmitButton()
-  {
-    return[
-      new Row(
-        children: <Widget>[
-          new MaterialButton
-            (
-            height: 40.0,
-            shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-            color: Colors.teal,
-            textColor: Colors.white,
-            child: new Text("Sign in"),
-            onPressed: validateAndSubmit,
-            splashColor: Colors.redAccent,
+  List<Widget> buildSubmitButton() {
+    if(_formType == FormType.login)
+      {
+        return [
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              //child: Text("Don't have an account?", style: TextStyle(color: Colors.green),),
+              child: FlatButton(
+                  onPressed: moveToRegister,
+                  child: Text(
+                    "Dont have an account?",
+                    style: TextStyle(color: Colors.green),
+                  )),
+            ),
           ),
-
-
-      new FlatButton(
-        shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-        color: Colors.teal,
-        textColor: Colors.white,
-        child: new Text("Register Now"),
-        onPressed: moveToRegister,
-
-      )
-        ],
-      ),
-    ];
-
-
+          SizedBox(
+            height: 80.0,
+          ),
+          Align(
+            child: SizedBox(
+              height: 40.0,
+              width: 250.0,
+              child: MaterialButton(
+                onPressed: validateAndSubmit,
+                splashColor: Colors.green[500],
+                color: Colors.green,
+                shape: RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0)),
+                child:
+                Text('Login', style: Theme.of(context).primaryTextTheme.button),
+              ),
+            ),
+          )
+        ];
+      }
+    else
+      {
+        return [
+          /*Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              //child: Text("Don't have an account?", style: TextStyle(color: Colors.green),),
+              child: FlatButton(
+                  onPressed: moveToRegister,
+                  child: Text(
+                    "Dont have an account?",
+                    style: TextStyle(color: Colors.green),
+                  )),
+            ),
+          ),*/
+          SizedBox(
+            height: 40.0,
+          ),
+          Align(
+            child: SizedBox(
+              height: 40.0,
+              width: 250.0,
+              child: MaterialButton(
+                onPressed: moveToRegister,
+                splashColor: Colors.green[500],
+                color: Colors.green,
+                shape: RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0)),
+                child:
+                Text('Register Now', style: Theme
+                    .of(context)
+                    .primaryTextTheme
+                    .button),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 20.0,
+          ),
+          Align(
+            child: SizedBox(
+              height: 40.0,
+              width: 250.0,
+              child: MaterialButton(
+                onPressed: moveToLogin,
+                splashColor: Colors.green[500],
+                color: Colors.green,
+                shape: RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0)),
+                child:
+                Text('Back To Login', style: Theme.of(context).primaryTextTheme.button),
+              ),
+            ),
+          )
+        ];
+      }
 
   }
-
 }
-

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "68796694299",
+    "firebase_url": "https://techarena-32900.firebaseio.com",
+    "project_id": "techarena-32900",
+    "storage_bucket": "techarena-32900.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68796694299:android:62800ff6ab19e85b",
+        "android_client_info": {
+          "package_name": "com.example.university_planner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "68796694299-0kbhtpo3fdsrinojhpdl4u3h72da9re2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxGNWZIoKN-tpHo2CinJAmd-I9zTbVCRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "68796694299-0kbhtpo3fdsrinojhpdl4u3h72da9re2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
