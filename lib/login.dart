@@ -1,27 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'auth.dart';
 
 class LoginPage extends StatefulWidget {
+  LoginPage({this.auth, this.onSignedIn});
+  final BaseAuth auth;
+  final VoidCallback onSignedIn;
   @override
   State createState() => new LoginPageState();
 }
+
 
 enum FormType { login, register }
 
 class LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
+
+  AnimationController _iconAnimationController;
+  Animation<double> _iconAnimation;
+  void logoEaseOut() {
+
+    super.initState();
+    _iconAnimationController = new AnimationController(
+        vsync: this, duration: new Duration(milliseconds: 500));
+    _iconAnimation = new CurvedAnimation(
+      parent: _iconAnimationController,
+      curve: Curves.easeOut,
+    );
+    _iconAnimation.addListener(() => this.setState(() {}));
+    _iconAnimationController.forward();
+  }
+
   final formKey = new GlobalKey<
       FormState>(); // FormKey for validation and saving data on StateChange
 
   String _username; // Student ID
   String _password; // Password
   FormType _formType = FormType.login;
-
   // Password Eye Button
   Color _eyeButtonColor = Colors.grey;
   bool _isObscured = true;
-
 // Validation Entered Credentials.
+
   bool validateAndSave() {
     final form = formKey.currentState;
     if (form.validate()) {
@@ -34,10 +53,15 @@ class LoginPageState extends State<LoginPage>
   void validateAndSubmit() async {
     if (validateAndSave()) {
       try {
-        AuthResult result = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: _username, password: _password);
-        FirebaseUser user = result.user;
-        print('Signed in: ${user.uid}');
+        if(_formType == FormType.login)
+          {
+            String userId = await widget.auth.signInWithEmailAndPassword(_username, _password);
+            print('Signed in: $userId');
+          } else {
+            String userId = await widget.auth.createUserWithEmailAndPassword(_username, _password);
+            print('User Created Successfully: $userId');
+          }
+        widget.onSignedIn();
       } catch (e) {
         print('Error: $e');
       }
@@ -45,37 +69,44 @@ class LoginPageState extends State<LoginPage>
   }
 
   void moveToRegister() {
+    formKey.currentState.reset();
     setState(() {
       _formType = FormType.register;
     });
   }
 
   void moveToLogin(){
+
+    formKey.currentState.reset();
     setState((){
       _formType = FormType.login;
     });
   }
 
-  AnimationController _iconAnimationController;
-  Animation<double> _iconAnimation;
+  //ShowDialog for Errors
+  void _showDialog()
+  {
+    showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog();
+      }
+    );
+  }
+
 
   @override
   void initState() {
-    super.initState();
-    _iconAnimationController = new AnimationController(
-        vsync: this, duration: new Duration(milliseconds: 500));
-    _iconAnimation = new CurvedAnimation(
-      parent: _iconAnimationController,
-      curve: Curves.easeOut,
-    );
-    _iconAnimation.addListener(() => this.setState(() {}));
-    _iconAnimationController.forward();
+    logoEaseOut();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Scaffold(
+      resizeToAvoidBottomPadding: false,
       backgroundColor: Colors.greenAccent,
       body: new Stack(
         fit: StackFit.expand,
@@ -117,7 +148,7 @@ class LoginPageState extends State<LoginPage>
       image: new AssetImage("assets/background.jpg"),
       fit: BoxFit.cover,
       color: Colors.black87,
-      colorBlendMode: BlendMode.darken,
+      colorBlendMode: BlendMode.softLight,
     );
   }
 
@@ -137,8 +168,7 @@ class LoginPageState extends State<LoginPage>
       ),
       new TextFormField(
         onSaved: (value) => _password = value,
-        validator: (value) =>
-            value.isEmpty ? 'Password cannot be left blank.' : null,
+        validator: (value) => value.isEmpty ? 'Password cannot be left blank.' : null,
         decoration: new InputDecoration(
             labelText: 'Enter Password',
             suffixIcon: IconButton(
@@ -187,7 +217,8 @@ class LoginPageState extends State<LoginPage>
             child: SizedBox(
               height: 40.0,
               width: 250.0,
-              child: MaterialButton(
+              child: FlatButton(
+                key: Key('signIn'),
                 onPressed: validateAndSubmit,
                 splashColor: Colors.green[500],
                 color: Colors.green,
@@ -224,7 +255,7 @@ class LoginPageState extends State<LoginPage>
               height: 40.0,
               width: 250.0,
               child: MaterialButton(
-                onPressed: moveToRegister,
+                onPressed: validateAndSubmit,
                 splashColor: Colors.green[500],
                 color: Colors.green,
                 shape: RoundedRectangleBorder(

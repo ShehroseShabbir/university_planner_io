@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
-import 'signup.dart';
-
+import 'auth.dart';
+import 'root_page.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
 
 
@@ -11,8 +11,8 @@ class myApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-        home: new LoginPage(),
-        theme: new ThemeData(primarySwatch: Colors.blue));
+        home: new RootPage(auth: new Auth()),
+        theme: new ThemeData(primarySwatch: Colors.green));
   }
 }
 
