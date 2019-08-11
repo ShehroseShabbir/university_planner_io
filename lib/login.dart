@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'auth.dart';
+import 'package:university_planner/auth_provider.dart';
+
 
 class LoginPage extends StatefulWidget {
-  LoginPage({this.auth, this.onSignedIn});
-  final BaseAuth auth;
-  final VoidCallback onSignedIn;
   @override
   State createState() => new LoginPageState();
 }
@@ -19,19 +17,11 @@ class LoginPageState extends State<LoginPage>
   Animation<double> _iconAnimation;
   void logoEaseOut() {
 
-    super.initState();
-    _iconAnimationController = new AnimationController(
-        vsync: this, duration: new Duration(milliseconds: 500));
-    _iconAnimation = new CurvedAnimation(
-      parent: _iconAnimationController,
-      curve: Curves.easeOut,
-    );
-    _iconAnimation.addListener(() => this.setState(() {}));
-    _iconAnimationController.forward();
+
+
   }
 
-  final formKey = new GlobalKey<
-      FormState>(); // FormKey for validation and saving data on StateChange
+  final formKey = new GlobalKey<FormState>(); // FormKey for validation and saving data on StateChange
 
   String _username; // Student ID
   String _password; // Password
@@ -53,15 +43,15 @@ class LoginPageState extends State<LoginPage>
   void validateAndSubmit() async {
     if (validateAndSave()) {
       try {
+        var auth = AuthProvider.of(context).auth;
         if(_formType == FormType.login)
           {
-            String userId = await widget.auth.signInWithEmailAndPassword(_username, _password);
+            String userId = await auth.signInWithEmailAndPassword(_username, _password);
             print('Signed in: $userId');
           } else {
-            String userId = await widget.auth.createUserWithEmailAndPassword(_username, _password);
+            String userId = await auth.createUserWithEmailAndPassword(_username, _password);
             print('User Created Successfully: $userId');
           }
-        widget.onSignedIn();
       } catch (e) {
         print('Error: $e');
       }
@@ -83,28 +73,23 @@ class LoginPageState extends State<LoginPage>
     });
   }
 
-  //ShowDialog for Errors
-  void _showDialog()
-  {
-    showDialog(
-      context: context,
-      builder: (BuildContext context){
-        return AlertDialog();
-      }
-    );
-  }
-
-
   @override
   void initState() {
-    logoEaseOut();
+    super.initState();
+        _iconAnimationController = new AnimationController(
+        vsync: this, duration: new Duration(milliseconds: 500));
+    _iconAnimation = new CurvedAnimation(
+      parent: _iconAnimationController,
+      curve: Curves.easeOut,
+    );
+    _iconAnimation.addListener(() => this.setState(() {}));
+    _iconAnimationController.forward();
   }
 
 
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return new Scaffold(
       resizeToAvoidBottomPadding: false,
       backgroundColor: Colors.greenAccent,
@@ -234,19 +219,6 @@ class LoginPageState extends State<LoginPage>
     else
       {
         return [
-          /*Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Align(
-              alignment: Alignment.centerRight,
-              //child: Text("Don't have an account?", style: TextStyle(color: Colors.green),),
-              child: FlatButton(
-                  onPressed: moveToRegister,
-                  child: Text(
-                    "Dont have an account?",
-                    style: TextStyle(color: Colors.green),
-                  )),
-            ),
-          ),*/
           SizedBox(
             height: 40.0,
           ),
@@ -289,5 +261,16 @@ class LoginPageState extends State<LoginPage>
         ];
       }
 
+  }
+}
+class LoadingCircle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        child: CircularProgressIndicator(),
+        alignment: Alignment(0.0, 0.0),
+      ),
+    );
   }
 }

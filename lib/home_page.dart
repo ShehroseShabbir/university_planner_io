@@ -1,34 +1,43 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'auth.dart';
+import 'package:university_planner/auth.dart';
+import 'package:university_planner/auth_provider.dart';
 
-
-class HomePage extends StatelessWidget{
-  HomePage({this.auth, this.onSignedOut});
-  final BaseAuth auth;
-  final VoidCallback onSignedOut;
-
-  void _signOut() async {
+class HomePage extends StatefulWidget {
+final FirebaseUser user;
+HomePage(this.user);
+  @override
+  State createState() => new HomePageState();
+}
+class HomePageState extends State<HomePage>{
+  void _signOut(BuildContext context) async {
     try{
+      var auth = AuthProvider.of(context).auth;
       await auth.signOut();
-      onSignedOut();
     }
     catch(e) {
       print(e);
     }
   }
-
   @override
   Widget build(BuildContext context) {
+
     return new Scaffold(
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              child: Text('Navigation', style: new TextStyle(fontSize: 28.0),),
+            UserAccountsDrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.blue,
+              ), 
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Theme.of(context).platform == TargetPlatform.iOS
+                ? Colors.blue : Colors.white,
+                child: Text("S", style: TextStyle(fontSize: 40.0),),
               ),
+              accountEmail: Text("${widget.user.email}"),
+              accountName: Text("${widget.user.displayName}"),
             ),
             ListTile(
               title: Text('View My Account'),
@@ -50,9 +59,8 @@ class HomePage extends StatelessWidget{
             ),
             ListTile(
               title: Text('Logout'),
-              onTap: (){
-                Navigator.pop(context);
-              },
+              onTap: () => 
+                _signOut(context),
             ),
           ],
         ),
@@ -62,12 +70,13 @@ class HomePage extends StatelessWidget{
         actions: <Widget>[
           new FlatButton(
               child: new Text('Logout', style: new TextStyle(fontSize: 17.0, color: Colors.white)),
-              onPressed: _signOut
+              onPressed: () => _signOut(context)
           )
         ]
       ),
       body: new Container(
-        child: new Center(
+        child: new Padding(
+          padding: const EdgeInsets.all(40.0),
           child: new Text("Welcome", style: new TextStyle(fontSize: 32.0)),
         ),
       ),

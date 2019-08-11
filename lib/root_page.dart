@@ -1,65 +1,70 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'auth.dart';
-import 'login.dart';
-import 'home_page.dart';
-
-class RootPage extends StatefulWidget {
-  RootPage({this.auth});
-  final BaseAuth auth;
-  @override
-  State<StatefulWidget> createState() => new _RootPageState();
-}
-
-enum AuthStatus
-{
-  notSignedin,
-  signedIn
-}
+import 'package:university_planner/auth_provider.dart';
+import 'package:university_planner/auth.dart';
+import 'package:university_planner/login.dart';
+import 'package:university_planner/home_page.dart';
 
 
-class _RootPageState extends State<RootPage>
-{
-  AuthStatus authStatus = AuthStatus.notSignedin;
-
-
-  initState()
-  {
-    super.initState();
-    widget.auth.currentUser().then((userId) {
-      setState((){
-        //authStatus = userId == null ? AuthStatus.notSignedin : AuthStatus.signedIn;
-      });
-    });
-  }
-
-  void _signedIn()
-  {
-    setState((){
-      authStatus = AuthStatus.signedIn;
-    });
-  }
-
-  void _signedOut()
-  {
-    setState((){
-      authStatus =  AuthStatus.notSignedin;
-    });
-  }
-
-  @override
+class RootPage extends StatelessWidget {
+    @override
   Widget build(BuildContext context) {
-    switch (authStatus) {
-      case AuthStatus.notSignedin:
-        return new LoginPage(
-            auth: widget.auth,
-            onSignedIn: _signedIn,
-        );
-      case AuthStatus.signedIn:
-        return new HomePage(
-          auth: widget.auth,
-          onSignedOut: _signedOut,
-        );
+    final BaseAuth auth = AuthProvider.of(context).auth;
+    return StreamBuilder<String>(
+      stream: auth.onAuthStateChanged,
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+        if(snapshot.connectionState == ConnectionState.active) {
+          if(snapshot.error != null)
+          {
+            print('error');
+            return Text(snapshot.error.toString());
+          }
+          final bool isLoggedIn = snapshot.hasData;
+          if(isLoggedIn == true)
+          {
+            return new FutureBuilder<FirebaseUser>(
+              future: auth.getUser(),
+              builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot)
+              {
+                if(snapshot.connectionState == ConnectionState.done)
+                {
+                     return HomePage(snapshot.data);
+                }
+               return LoginPage();
+              }
+            );
+            
+            //isLoggedIn ? HomePage(user) : LoginPage();
+          }
+        }
+          return LoginPage();//Text('${snapshot.data}');
+      }
+    );
+    /*FutureBuilder<FirebaseUser>(
+      future: auth.getUser(),
+      builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot){
+        if(snapshot.connectionState == ConnectionState.active)
+        {
+          if(snapshot.error != null)
+          {
+            print('error');
+            return Text(snapshot.error.toString());
+          }
+          final bool isLoggedIn = snapshot.hasData;
+           return isLoggedIn ? HomePage() : LoginPage();
+         
+        }
+        else if(snapshot.connectionState == ConnectionState.done)
+        {
+         final bool isLoggedIn = snapshot.hasData;
+          return isLoggedIn ? HomePage(snapshot.data) : LoginPage();
+        }
 
-    }
-}
-}
+        return Text("Waiting for connection.");
+        
+      }
+    );*/
+    
+    /**/
+    }    
+} 
